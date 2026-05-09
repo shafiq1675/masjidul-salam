@@ -3,7 +3,7 @@ export default function About() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-10 bg-[oklch(97%_0.014_254.604)]">
       <h1 className="text-4xl md:text-5xl font-bold text-center text-gray-800">
-        আমাদের সম্পর্কে
+        মসজিদুল সালাম সম্পর্কে
       </h1>
       <p className="mt-4 text-lg text-center text-gray-600 max-w-2xl">
         আমাদের এই মসজিদটি আমাদের কমিউনিটির &#91;পিরেরচর পূর্ব পাড়া, ভাঙ্গা, ফরিদপুর&#93; একটি সম্মিলিত উদ্যোগের ফল। ২০২৪ সালে আমাদের এলাকার মানুষের ঐক্যবদ্ধ প্রচেষ্টা, দান এবং সহযোগিতার মাধ্যমে এটি নির্মিত হয়েছে।
