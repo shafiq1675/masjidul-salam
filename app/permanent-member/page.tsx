@@ -18,7 +18,7 @@ export default function PermanentMember() {
 
                     <tbody>
                         {[
-                            { name: "মোঃ দেলওার শেক", profession: "কৃষক", age: 45 },
+                            { name: "মোঃ দেলোয়ার শেক", profession: "কৃষক", age: 45 },
                             { name: "মোঃ ইসমাইল শেখ", profession: "কৃষক", age: 55 },
                             { name: "মোঃ মিন্টু তালুকদার", profession: "ব্যবসায়ী", age: 40 },
                             { name: "মোঃ বাদশা তালুকদার", profession: "কৃষক", age: 54 },

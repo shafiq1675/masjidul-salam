@@ -42,7 +42,7 @@ export default function Home() {
       <div className="mt-6 flex flex-col sm:flex-row gap-4">
         <Link
           href="/about"
-          className="px-6 py-3 text-white rounded-lg transition hover:opacity-90 bg-[oklch(70.7%_0.165_254.624)] inline-block text-center"        >
+          className="px-6 py-3 border rounded-lg transition hover:bg-white text-[oklch(70.7%_0.165_254.624)] border-[oklch(70.7%_0.165_254.624)] inline-block text-center"        >
           মসজিদুল সালাম সম্পর্কে আরও জানুন
         </Link>
 
