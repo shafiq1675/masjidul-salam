@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-3 gap-10">
           <div>
-            <div className="font-bold text-xl mb-3">মসজিদুল সালাম</div>
+            <div className="font-bold text-xl mb-3">মাসজিদুস সালাম</div>
             <p className="text-white/55 text-sm leading-relaxed">
               আপনার ইবাদত, আত্মিক উন্নতি ও সামাজিক সম্প্রীতির স্থান। আমাদের সাথে থাকুন
               এবং একটি সুন্দর সমাজের অংশীদার হোন।
@@ -50,7 +50,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-10 pt-6 border-t border-white/10 text-center text-white/35 text-xs">
-          © {new Date().getFullYear()} মসজিদুল সালাম। সর্বস্বত্ব সংরক্ষিত।
+          © {new Date().getFullYear()} মাসজিদুস সালাম। সর্বস্বত্ব সংরক্ষিত।
         </div>
       </div>
     </footer>

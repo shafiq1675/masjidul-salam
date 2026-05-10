@@ -189,7 +189,7 @@ export default function Home() {
         <motion.div className="absolute inset-0 scale-110" style={{ y: heroY }}>
           <Image
             src="/hero-image.png"
-            alt="মসজিদুল সালাম"
+            alt="মাসজিদুস সালাম"
             fill
             className="object-cover"
             priority
@@ -212,7 +212,7 @@ export default function Home() {
             animate="show"
             transition={{ delay: 0.2 }}
           >
-            মসজিদুল সালামে স্বাগতম
+            মাসজিদুস সালামে স্বাগতম
           </motion.h1>
 
           <motion.p
@@ -349,7 +349,7 @@ export default function Home() {
               আধ্যাত্মিক বিকাশ ও সামাজিক ঐক্য
             </h2>
             <p className="mt-4 text-gray-600 leading-relaxed text-[15px]">
-              মসজিদুল সালাম একটি শান্তিপূর্ণ সম্প্রদায় তৈরির লক্ষ্যে কাজ করছে। আমরা ধর্মীয় শিক্ষা,
+              মাসজিদুস সালাম একটি শান্তিপূর্ণ সম্প্রদায় তৈরির লক্ষ্যে কাজ করছে। আমরা ধর্মীয় শিক্ষা,
               সামাজিক সংহতি ও সাংস্কৃতিক উন্নয়নের মাধ্যমে একটি আদর্শ সমাজ গঠনে প্রতিশ্রুতিবদ্ধ।
             </p>
             <ul className="mt-6 space-y-3">
@@ -438,7 +438,7 @@ export default function Home() {
           <motion.div variants={slideLeft} className="text-white">
             <h2 className="text-3xl md:text-4xl font-bold leading-tight">সদস্যপদ গ্রহণ ও দান</h2>
             <p className="mt-4 text-white/75 leading-relaxed text-[15px]">
-              মসজিদুল সালামের উন্নয়ন ও কার্যক্রম পরিচালনায় আপনার সহায়তা অত্যন্ত প্রয়োজনীয়।
+              মাসজিদুস সালামের উন্নয়ন ও কার্যক্রম পরিচালনায় আপনার সহায়তা অত্যন্ত প্রয়োজনীয়।
               আমাদের সদস্য হয়ে নিয়মিত অনুদান প্রদান করুন এবং একটি সুন্দর সমাজ গড়ার অংশীদার হোন।
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-6">

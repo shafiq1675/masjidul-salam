@@ -6,7 +6,7 @@ export default function PermanentMember() {
         <div className="min-h-screen w-screen px-4 md:px-10 py-10 bg-[oklch(97%_0.014_254.604)]">
 
             <h1 className="text-xl md:text-3xl font-bold text-center text-gray-500 mb-8">
-                মসজিদুল সালামের স্থায়ী সদস্যগণ
+                মাসজিদুস সালামের স্থায়ী সদস্যগণ
             </h1>
 
             <div className="w-full bg-white rounded-2xl shadow-lg overflow-x-auto overflow-y-auto h-[calc(100vh-180px)]">
