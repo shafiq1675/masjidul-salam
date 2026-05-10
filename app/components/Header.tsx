@@ -10,7 +10,7 @@ const navLinks = [
   { label: "সম্পর্কে",     href: "/about" },
   // { label: "ইবাদতের সময়", href: "/prayer-times" },
   { label: "যোগাযোগ",      href: "/#contact" },
-  { label: "সদস্যদের",     href: "/permanent-member" },
+  { label: "স্থায়ী সদস্য",     href: "/permanent-member" },
 ];
 
 export default function Header() {
