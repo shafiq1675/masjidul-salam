@@ -8,8 +8,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "মসজিদুল সালাম",
-  description: "মসজিদুল সালাম - আপনার ইবাদত, আত্মিক উন্নতি ও সামাজিক সম্প্রীতির স্থান।",
+  title: "মাসজিদুস সালাম",
+  description: "মাসজিদুস সালাম - আপনার ইবাদত, আত্মিক উন্নতি ও সামাজিক সম্প্রীতির স্থান।",
 };
 
 export default function RootLayout({

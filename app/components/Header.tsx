@@ -10,7 +10,7 @@ const navLinks = [
   { label: "সম্পর্কে",     href: "/about" },
   // { label: "ইবাদতের সময়", href: "/prayer-times" },
   { label: "যোগাযোগ",      href: "/#contact" },
-  { label: "সদস্যদের",     href: "/permanent-member" },
+  { label: "স্থায়ী সদস্য",     href: "/permanent-member" },
 ];
 
 export default function Header() {
@@ -41,7 +41,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="font-bold text-xl text-[#1a5c38] tracking-tight">
-            মসজিদুল সালাম
+            মাসজিদুস সালাম
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
