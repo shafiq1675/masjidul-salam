@@ -18,3 +18,7 @@ export const db   = getFirestore(app);
 // Secondary app — used to create new Firebase Auth users without signing out the current admin
 const secondary = getApps().find((a) => a.name === "secondary") ?? initializeApp(firebaseConfig, "secondary");
 export const secondaryAuth = getAuth(secondary);
+
+// Public app — used for phone OTP on the public donation form (isolated from admin auth)
+const publicApp = getApps().find((a) => a.name === "public") ?? initializeApp(firebaseConfig, "public");
+export const publicAuth = getAuth(publicApp);

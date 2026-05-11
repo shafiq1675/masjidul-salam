@@ -3,7 +3,11 @@
     "allow": [
       "Bash(Get-ChildItem -Path \"d:\\\\Techwake360\\\\masjidul-salam\" -Recurse -Directory)",
       "Bash(Select-Object FullName)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\('firebase:', p.dependencies.firebase\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/firebase/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(dir \"d:\\\\Techwake360\\\\masjidul-salam\\\\.env*\")"
     ]
   }
 }

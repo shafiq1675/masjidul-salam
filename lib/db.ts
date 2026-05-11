@@ -23,11 +23,12 @@ export type FsDonation = {
   id?: string;
   donor: string;
   email: string;
+  phone?: string;
   amount: number;
   category: string;
   date: string;
   method: string;
-  status: "Completed" | "Pending" | "Refunded";
+  status: "Paid" | "Pending" | "Refunded";
 };
 
 export type FsMember = {
@@ -50,10 +51,10 @@ export type PrayerTimesDoc = {
 
 // ── Collection refs ──────────────────────────────────────────────────────────
 
-const eventsCol    = collection(db, "events");
+const eventsCol = collection(db, "events");
 const donationsCol = collection(db, "donations");
-const membersCol   = collection(db, "members");
-const prayerRef    = doc(db, "config", "prayerTimes");
+const membersCol = collection(db, "members");
+const prayerRef = doc(db, "config", "prayerTimes");
 
 // ── Events ────────────────────────────────────────────────────────────────────
 
@@ -62,7 +63,7 @@ export function subscribeEvents(cb: (rows: FsEvent[]) => void): Unsubscribe {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as FsEvent)))
   );
 }
-export const addEvent    = (data: Omit<FsEvent, "id">) =>
+export const addEvent = (data: Omit<FsEvent, "id">) =>
   addDoc(eventsCol, { ...data, createdAt: serverTimestamp() });
 export const updateEvent = (id: string, data: Partial<Omit<FsEvent, "id">>) =>
   updateDoc(doc(db, "events", id), data);
@@ -76,7 +77,7 @@ export function subscribeDonations(cb: (rows: FsDonation[]) => void): Unsubscrib
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as FsDonation)))
   );
 }
-export const addDonation    = (data: Omit<FsDonation, "id">) =>
+export const addDonation = (data: Omit<FsDonation, "id">) =>
   addDoc(donationsCol, { ...data, createdAt: serverTimestamp() });
 export const updateDonation = (id: string, data: Partial<Omit<FsDonation, "id">>) =>
   updateDoc(doc(db, "donations", id), data);
@@ -90,7 +91,7 @@ export function subscribeMembers(cb: (rows: FsMember[]) => void): Unsubscribe {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as FsMember)))
   );
 }
-export const addMember    = (data: Omit<FsMember, "id">) =>
+export const addMember = (data: Omit<FsMember, "id">) =>
   addDoc(membersCol, { ...data, createdAt: serverTimestamp() });
 export const updateMember = (id: string, data: Partial<Omit<FsMember, "id">>) =>
   updateDoc(doc(db, "members", id), data);
@@ -110,7 +111,7 @@ export const savePrayerTimes = (data: PrayerTimesDoc) =>
 // ── Admin Users ───────────────────────────────────────────────────────────────
 
 export type SectionKey = "dashboard" | "prayerTimes" | "events" | "donations" | "community" | "users";
-export type Permission  = "read" | "write" | "delete";
+export type Permission = "read" | "write" | "delete";
 export type SectionPerms = Record<SectionKey, Permission[]>;
 
 export type AdminUser = {
@@ -125,52 +126,52 @@ export type AdminUser = {
 
 export const ADMIN_ROLES: Record<string, SectionPerms> = {
   "Super Admin": {
-    dashboard:   ["read"],
+    dashboard: ["read"],
     prayerTimes: ["read", "write", "delete"],
-    events:      ["read", "write", "delete"],
-    donations:   ["read", "write", "delete"],
-    community:   ["read", "write", "delete"],
-    users:       ["read", "write", "delete"],
+    events: ["read", "write", "delete"],
+    donations: ["read", "write", "delete"],
+    community: ["read", "write", "delete"],
+    users: ["read", "write", "delete"],
   },
   "Admin": {
-    dashboard:   ["read"],
+    dashboard: ["read"],
     prayerTimes: ["read", "write"],
-    events:      ["read", "write", "delete"],
-    donations:   ["read", "write"],
-    community:   ["read", "write"],
-    users:       ["read"],
+    events: ["read", "write", "delete"],
+    donations: ["read", "write"],
+    community: ["read", "write"],
+    users: ["read"],
   },
   "Prayer Manager": {
-    dashboard:   ["read"],
+    dashboard: ["read"],
     prayerTimes: ["read", "write"],
-    events:      [],
-    donations:   [],
-    community:   [],
-    users:       [],
+    events: [],
+    donations: [],
+    community: [],
+    users: [],
   },
   "Event Manager": {
-    dashboard:   ["read"],
+    dashboard: ["read"],
     prayerTimes: [],
-    events:      ["read", "write", "delete"],
-    donations:   [],
-    community:   [],
-    users:       [],
+    events: ["read", "write", "delete"],
+    donations: [],
+    community: [],
+    users: [],
   },
   "Finance Manager": {
-    dashboard:   ["read"],
+    dashboard: ["read"],
     prayerTimes: [],
-    events:      [],
-    donations:   ["read", "write", "delete"],
-    community:   [],
-    users:       [],
+    events: [],
+    donations: ["read", "write", "delete"],
+    community: [],
+    users: [],
   },
   "Viewer": {
-    dashboard:   ["read"],
+    dashboard: ["read"],
     prayerTimes: ["read"],
-    events:      ["read"],
-    donations:   ["read"],
-    community:   ["read"],
-    users:       [],
+    events: ["read"],
+    donations: ["read"],
+    community: ["read"],
+    users: [],
   },
 };
 

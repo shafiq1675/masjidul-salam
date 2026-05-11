@@ -11,6 +11,9 @@ import {
   type Variants,
 } from "framer-motion";
 import { useRef } from "react";
+import { subscribePrayerTimes, addDonation, type PrayerTimesDoc } from "@/lib/db";
+import { RecaptchaVerifier, signInWithPhoneNumber, signOut, type ConfirmationResult } from "firebase/auth";
+import { publicAuth } from "@/lib/firebase";
 
 // ── animation variants ──────────────────────────────────────────────────────
 const fadeUp: Variants = {
@@ -39,16 +42,15 @@ const cardVariant: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } },
 };
 
-// ── prayer times data ────────────────────────────────────────────────────────
-const PRAYERS = [
-  { name: "ফজর",      time: "০৫:১২", h: 5,  m: 12, sun: false },
-  { name: "সূর্যোদয়", time: "০৬:৩০", h: 6,  m: 30, sun: true  },
-  { name: "যোহর",     time: "১২:০৫", h: 12, m: 5,  sun: false },
-  { name: "আসর",      time: "০৪:১৫", h: 16, m: 15, sun: false },
-  { name: "মাগরিব",   time: "০৫:৪৮", h: 17, m: 48, sun: false },
-  { name: "সূর্যাস্ত", time: "০৫:৫২", h: 17, m: 52, sun: true  },
-  { name: "এশা",      time: "০৭:৩০", h: 19, m: 30, sun: false },
-];
+// ── prayer name → Bengali label + sun flag ───────────────────────────────────
+const PRAYER_BN: Record<string, { bn: string; sun: boolean }> = {
+  Fajr:    { bn: "ফজর",       sun: false },
+  Sunrise: { bn: "সূর্যোদয়",  sun: true  },
+  Dhuhr:   { bn: "যোহর",      sun: false },
+  Asr:     { bn: "আসর",       sun: false },
+  Maghrib: { bn: "মাগরিব",    sun: false },
+  Isha:    { bn: "এশা",       sun: false },
+};
 
 const BENGALI_DAYS   = ["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"];
 const BENGALI_MONTHS = ["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
@@ -99,6 +101,7 @@ const developers = [
 ];
 
 const donationAmounts = ["১০০", "১০০০", "৫০০০", "অন্যান্য"];
+const AMOUNT_NUM: Record<string, number> = { "১০০": 100, "১০০০": 1000, "৫০০০": 5000 };
 
 // ── helper: scroll-into-view for anchor links ────────────────────────────────
 const HEADER_H = 64; // matches h-16 in Header.tsx
@@ -157,7 +160,18 @@ function Section({
 // ── page ────────────────────────────────────────────────────────────────────
 export default function Home() {
   const [donationAmount, setDonationAmount] = useState("১০০০");
+  const [donorName, setDonorName]           = useState("");
+  const [donorPhone, setDonorPhone]         = useState("");
+  const [customAmount, setCustomAmount]     = useState("");
+  const [donateStatus, setDonateStatus]     = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [now, setNow] = useState(() => new Date());
+  const [prayerDoc, setPrayerDoc] = useState<PrayerTimesDoc | null>(null);
+  const [otpStep, setOtpStep]     = useState<"form" | "otp">("form");
+  const [otp, setOtp]             = useState("");
+  const [otpError, setOtpError]   = useState("");
+  const [otpSending, setOtpSending] = useState(false);
+  const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
+  const confirmRef   = useRef<ConfirmationResult | null>(null);
 
   useSmoothAnchor();
 
@@ -167,18 +181,118 @@ export default function Home() {
     return () => clearInterval(id);
   }, []);
 
+  // live prayer times from Firestore
+  useEffect(() => {
+    return subscribePrayerTimes(setPrayerDoc);
+  }, []);
+
+  // cleanup reCAPTCHA on unmount
+  useEffect(() => () => { recaptchaRef.current?.clear(); }, []);
+
+  // build display array from Firestore doc (skip Jumu'ah — weekly only)
+  // Maghrib expands to two cards: adhan = iftar/Maghrib, iqama = Sunset prayer start
+  const prayers = (prayerDoc?.prayers ?? [])
+    .filter((p) => p.name !== "Jumu'ah")
+    .flatMap((p) => {
+      const meta = PRAYER_BN[p.name] ?? { bn: p.name, sun: false };
+      const [h, m] = (p.adhan || "0:0").split(":").map(Number);
+      const entry = { name: meta.bn, time: toBN(p.adhan), h, m, sun: meta.sun };
+      if (p.name === "Maghrib" && p.iqama) {
+        const [ih, im] = p.iqama.split(":").map(Number);
+        return [entry, { name: "সূর্যাস্ত", time: toBN(p.iqama), h: ih, m: im, sun: true }];
+      }
+      return [entry];
+    });
+
   // determine current & next prayer
   const nowMins = now.getHours() * 60 + now.getMinutes();
-  const prayerMins = PRAYERS.map((p) => p.h * 60 + p.m);
+  const prayerMins = prayers.map((p) => p.h * 60 + p.m);
   let currentIdx = -1;
   for (let i = prayerMins.length - 1; i >= 0; i--) {
     if (prayerMins[i] <= nowMins) { currentIdx = i; break; }
   }
-  const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % PRAYERS.length;
+  const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % prayers.length;
 
   // hero parallax
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 500], [0, 120]);
+
+  async function sendOtp() {
+    if (!donorName.trim() || !donorPhone.trim()) return;
+    const numAmount = donationAmount === "অন্যান্য"
+      ? Number(customAmount) : AMOUNT_NUM[donationAmount] ?? 0;
+    if (numAmount <= 0) return;
+
+    // Strip spaces, hyphens, parentheses before formatting
+    const cleaned = donorPhone.trim().replace(/[\s\-(). ]/g, "");
+    const phone   = cleaned.startsWith("+") ? cleaned
+      : cleaned.startsWith("0") ? "+880" + cleaned.slice(1)
+      : "+880" + cleaned;
+
+    setOtpSending(true);
+    setOtpError("");
+    try {
+      if (!recaptchaRef.current) {
+        recaptchaRef.current = new RecaptchaVerifier(publicAuth, "recaptcha-container", { size: "invisible" });
+      }
+      await recaptchaRef.current.render();
+
+      // Race against 60-second timeout — RecaptchaVerifier.verify() never rejects
+      // on its own, so a blocked/frozen reCAPTCHA would hang the button forever.
+      const otpTimeout = new Promise<never>((_, rej) =>
+        window.setTimeout(() => rej({ code: "otp/timeout" }), 60_000)
+      );
+      confirmRef.current = await Promise.race([
+        signInWithPhoneNumber(publicAuth, phone, recaptchaRef.current),
+        otpTimeout,
+      ]);
+      setOtpStep("otp");
+    } catch (err: unknown) {
+      console.error("sendOtp error:", err);
+      const code = (err as { code?: string }).code ?? "";
+      const msg  = err instanceof Error ? err.message : String(err);
+      const OTP_ERRORS: Record<string, string> = {
+        "auth/operation-not-allowed": "Phone Auth Firebase Console-এ সক্রিয় নেই।",
+        "auth/invalid-phone-number":  "ফোন নম্বর সঠিক নয়। ফরম্যাট: 01XXXXXXXXX",
+        "auth/quota-exceeded":        "SMS কোটা শেষ হয়ে গেছে। পরে আবার চেষ্টা করুন।",
+        "auth/too-many-requests":     "অনেক বেশি অনুরোধ। কিছুক্ষণ পরে চেষ্টা করুন।",
+        "auth/captcha-check-failed":  "reCAPTCHA ব্যর্থ হয়েছে। পেজ রিলোড করুন।",
+        "auth/missing-phone-number":  "ফোন নম্বর দেওয়া হয়নি।",
+        "auth/app-not-authorized":    "এই ডোমেইন Firebase-এ অনুমোদিত নয়।",
+        "auth/internal-error":        "Firebase কনফিগারেশন ত্রুটি। Console দেখুন।",
+        "otp/timeout":                "reCAPTCHA সাড়া দিচ্ছে না। পেজ রিলোড করুন।",
+      };
+      setOtpError(OTP_ERRORS[code] ?? `ত্রুটি: ${code || msg.slice(0, 100)}`);
+      recaptchaRef.current?.clear();
+      recaptchaRef.current = null;
+    } finally {
+      setOtpSending(false);
+    }
+  }
+
+  async function verifyAndDonate() {
+    if (!confirmRef.current || otp.length < 6) return;
+    setDonateStatus("submitting");
+    setOtpError("");
+    try {
+      await confirmRef.current.confirm(otp);
+      const numAmount = donationAmount === "অন্যান্য"
+        ? Number(customAmount) : AMOUNT_NUM[donationAmount] ?? 0;
+      await addDonation({
+        donor: donorName.trim(), email: "", phone: donorPhone.trim(),
+        amount: numAmount, category: "General Fund",
+        date: new Date().toISOString().slice(0, 10), method: "Cash", status: "Pending",
+      });
+      await signOut(publicAuth).catch(() => {});
+      setDonateStatus("success");
+      setDonorName(""); setDonorPhone(""); setCustomAmount(""); setDonationAmount("১০০০");
+      setOtp(""); setOtpStep("form");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setOtpError(msg.includes("invalid-verification-code") ? "OTP সঠিক নয়।" : "যাচাইকরণ ব্যর্থ হয়েছে।");
+      setDonateStatus("idle");
+    }
+  }
 
   return (
     <div className="flex flex-col bg-white">
@@ -272,7 +386,7 @@ export default function Home() {
             animate="show"
             transition={{ delayChildren: 0.85 }}
           >
-            {PRAYERS.map((prayer, i) => {
+            {prayers.map((prayer, i) => {
               const isCurrent = i === currentIdx;
               const isNext    = i === nextIdx;
               const isPast    = currentIdx !== -1 && i < currentIdx;
@@ -470,52 +584,159 @@ export default function Home() {
           </motion.div>
 
           <motion.div variants={slideRight} className="bg-white rounded-2xl p-6 shadow-2xl">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="text-xs text-gray-500 font-medium block mb-1.5">আবেদনকারীর নাম</label>
-                <input
-                  type="text"
-                  placeholder="আপনার নাম"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-1 focus:ring-[#1a5c38] transition"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-500 font-medium block mb-1.5">ফোন নম্বর</label>
-                <input
-                  type="tel"
-                  placeholder="+৮৮০XXXXXXXXX"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1a5c38] focus:ring-1 focus:ring-[#1a5c38] transition"
-                />
-              </div>
-            </div>
 
-            <div className="mb-5">
-              <label className="text-xs text-gray-500 font-medium block mb-2">দান পরিমাণ (টাকা)</label>
-              <div className="grid grid-cols-4 gap-2">
-                {donationAmounts.map((amount) => (
-                  <motion.button
-                    key={amount}
-                    onClick={() => setDonationAmount(amount)}
-                    whileTap={{ scale: 0.94 }}
-                    className={`py-2.5 rounded-lg text-sm font-semibold border transition-all ${
-                      donationAmount === amount
-                        ? "bg-[#1a5c38] text-white border-[#1a5c38] shadow-sm"
-                        : "bg-white text-gray-700 border-gray-200 hover:border-[#1a5c38] hover:text-[#1a5c38]"
-                    }`}
-                  >
-                    {amount}
-                  </motion.button>
-                ))}
+            {/* Success state */}
+            {donateStatus === "success" ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center gap-3">
+                <div className="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <svg className="w-7 h-7 text-emerald-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="font-bold text-gray-900 text-lg">জাযাকাল্লাহু খায়রান!</p>
+                <p className="text-gray-500 text-sm">আপনার দানের অনুরোধ সফলভাবে জমা হয়েছে।</p>
+                <button
+                  onClick={() => setDonateStatus("idle")}
+                  className="mt-2 text-sm text-emerald-primary font-semibold hover:underline"
+                >
+                  আবার দান করুন
+                </button>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* invisible reCAPTCHA mount point */}
+                <div id="recaptcha-container" />
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full bg-[#e07b39] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#c96c2e] transition-colors"
-            >
-              দান নিশ্চিত করুন
-            </motion.button>
+                {otpStep === "form" ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-xs text-gray-500 font-medium block mb-1.5">আবেদনকারীর নাম *</label>
+                        <input
+                          type="text"
+                          placeholder="আপনার নাম"
+                          value={donorName}
+                          onChange={(e) => setDonorName(e.target.value)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 font-medium block mb-1.5">ফোন নম্বর *</label>
+                        <input
+                          type="tel"
+                          placeholder="01XXXXXXXXX"
+                          value={donorPhone}
+                          onChange={(e) => setDonorPhone(e.target.value)}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mb-5">
+                      <label className="text-xs text-gray-500 font-medium block mb-2">দান পরিমাণ (টাকা)</label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {donationAmounts.map((amount) => (
+                          <motion.button
+                            key={amount}
+                            onClick={() => setDonationAmount(amount)}
+                            whileTap={{ scale: 0.94 }}
+                            className={`py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                              donationAmount === amount
+                                ? "bg-emerald-primary text-white border-emerald-primary shadow-sm"
+                                : "bg-white text-gray-700 border-gray-200 hover:border-emerald-primary hover:text-emerald-primary"
+                            }`}
+                          >
+                            {amount}
+                          </motion.button>
+                        ))}
+                      </div>
+                      {donationAmount === "অন্যান্য" && (
+                        <input
+                          type="number"
+                          min={1}
+                          placeholder="পরিমাণ লিখুন"
+                          value={customAmount}
+                          onChange={(e) => setCustomAmount(e.target.value)}
+                          className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition"
+                        />
+                      )}
+                    </div>
+
+                    {otpError && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 mb-3 text-sm text-red-700 font-medium">{otpError}</div>
+                    )}
+
+                    <motion.button
+                      onClick={sendOtp}
+                      disabled={otpSending || !donorName.trim() || !donorPhone.trim()}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-full bg-gold-accent text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#c96c2e] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {otpSending ? "পাঠানো হচ্ছে..." : "OTP পাঠান"}
+                    </motion.button>
+                  </>
+                ) : (
+                  <>
+                    {/* summary */}
+                    <div className="bg-gray-50 rounded-xl p-4 mb-5 text-sm text-gray-700 space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">নাম</span>
+                        <span className="font-medium">{donorName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">ফোন</span>
+                        <span className="font-medium">{donorPhone}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">পরিমাণ</span>
+                        <span className="font-medium text-emerald-primary">
+                          ৳{donationAmount === "অন্যান্য" ? customAmount : donationAmount}
+                        </span>
+                      </div>
+                    </div>
+
+                    <label className="text-xs text-gray-500 font-medium block mb-2">
+                      আপনার ফোনে পাঠানো ৬ সংখ্যার OTP লিখুন
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="• • • • • •"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 text-2xl font-bold text-center tracking-[0.5em] focus:outline-none focus:border-emerald-primary transition mb-4"
+                    />
+
+                    {otpError && (
+                      <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 mb-3 text-sm text-red-700 font-medium">{otpError}</div>
+                    )}
+
+                    <motion.button
+                      onClick={verifyAndDonate}
+                      disabled={donateStatus === "submitting" || otp.length < 6}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-full bg-emerald-primary text-white py-3.5 rounded-xl font-bold text-base hover:bg-emerald-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mb-3"
+                    >
+                      {donateStatus === "submitting" ? "যাচাই হচ্ছে..." : "যাচাই করুন ও দান করুন"}
+                    </motion.button>
+
+                    <button
+                      onClick={() => {
+                        setOtpStep("form"); setOtp(""); setOtpError("");
+                        recaptchaRef.current?.clear();
+                        recaptchaRef.current = null;
+                      }}
+                      className="w-full text-sm text-gray-400 hover:text-gray-600 transition-colors py-1"
+                    >
+                      ← পরিবর্তন করুন
+                    </button>
+                  </>
+                )}
+              </>
+            )}
           </motion.div>
         </div>
       </Section>

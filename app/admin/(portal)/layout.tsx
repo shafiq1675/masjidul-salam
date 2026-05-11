@@ -6,13 +6,11 @@ import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/app/context/AuthContext";
 import { type SectionKey } from "@/lib/db";
 
-// ── Nav item definitions (section key drives permission checks) ──────────────
-
 const NAV_ITEMS: { label: string; href: string; section: SectionKey; icon: React.ReactNode }[] = [
   {
     label: "Dashboard", href: "/admin", section: "dashboard",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
       </svg>
@@ -21,7 +19,7 @@ const NAV_ITEMS: { label: string; href: string; section: SectionKey; icon: React
   {
     label: "Prayer Times", href: "/admin/prayer-times", section: "prayerTimes",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
@@ -30,7 +28,7 @@ const NAV_ITEMS: { label: string; href: string; section: SectionKey; icon: React
   {
     label: "Events", href: "/admin/events", section: "events",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
       </svg>
@@ -39,7 +37,7 @@ const NAV_ITEMS: { label: string; href: string; section: SectionKey; icon: React
   {
     label: "Donations", href: "/admin/donations", section: "donations",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
@@ -48,7 +46,7 @@ const NAV_ITEMS: { label: string; href: string; section: SectionKey; icon: React
   {
     label: "Community", href: "/admin/community", section: "community",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
@@ -57,7 +55,7 @@ const NAV_ITEMS: { label: string; href: string; section: SectionKey; icon: React
   {
     label: "Users", href: "/admin/users", section: "users",
     icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0M19 21a7 7 0 10-14 0" />
       </svg>
@@ -65,7 +63,6 @@ const NAV_ITEMS: { label: string; href: string; section: SectionKey; icon: React
   },
 ];
 
-// pathname → section key, for the route guard
 const PATH_SECTION: Record<string, SectionKey> = {
   "/admin":               "dashboard",
   "/admin/prayer-times":  "prayerTimes",
@@ -84,26 +81,21 @@ const ROLE_BADGE: Record<string, string> = {
   "Viewer":         "bg-gray-100 text-gray-600",
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function canRead(permissions: Record<string, string[]> | undefined, section: SectionKey) {
   return (permissions?.[section] ?? []).includes("read");
 }
-
-// ── Shell ─────────────────────────────────────────────────────────────────────
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const { user, adminUser, loading, logOut } = useAuth();
   const pathname = usePathname();
   const router   = useRouter();
-  const [search, setSearch] = useState("");
+  const [search, setSearch]       = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) router.replace("/admin/login");
   }, [user, loading, router]);
 
-  // Route guard — redirect to dashboard if user lacks read on this section
   useEffect(() => {
     if (loading || !adminUser) return;
     const section = PATH_SECTION[pathname];
@@ -111,6 +103,9 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       router.replace("/admin");
     }
   }, [loading, adminUser, pathname, router]);
+
+  // Close sidebar whenever route changes (mobile navigation)
+  useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
   if (loading || !user || !adminUser) {
     return (
@@ -120,7 +115,6 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Only show nav items the user can read
   const visibleNav = NAV_ITEMS.filter((item) => canRead(adminUser.permissions, item.section));
 
   async function handleLogout() {
@@ -130,11 +124,37 @@ function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
+
+      {/* ── Mobile backdrop ───────────────────────────────────────────────── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Sidebar ───────────────────────────────────────────────────────── */}
-      <aside className="w-52.5 shrink-0 bg-white border-r border-gray-100 flex flex-col">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <div className="font-bold text-emerald-primary text-[15px] leading-tight">Masjidul Salam</div>
-          <div className="text-[11px] text-gray-400 mt-0.5">Admin Portal</div>
+      <aside className={`
+        fixed md:relative inset-y-0 left-0 z-50
+        w-64 md:w-52.5 shrink-0
+        bg-white border-r border-gray-100 flex flex-col
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
+      `}>
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <div className="font-bold text-emerald-primary text-[15px] leading-tight">Masjidul Salam</div>
+            <div className="text-[11px] text-gray-400 mt-0.5">Admin Portal</div>
+          </div>
+          {/* Close button — mobile only */}
+          <button
+            className="md:hidden p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
@@ -146,6 +166,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-emerald-primary text-white"
@@ -159,9 +180,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* User info + logout */}
         <div className="p-3 border-t border-gray-100 space-y-1">
-          {/* Logged-in user card */}
           <div className="flex items-center gap-2.5 px-3 py-2 mb-1">
             <div className="w-7 h-7 rounded-full bg-emerald-primary flex items-center justify-center text-white text-[11px] font-bold shrink-0">
               {adminUser.name.charAt(0).toUpperCase()}
@@ -178,7 +197,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             href="/admin/settings"
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -189,7 +208,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -199,9 +218,20 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* ── Main ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <header className="bg-white border-b border-gray-100 px-6 py-3 flex items-center gap-4 shrink-0">
-          <div className="flex-1 relative">
+      <div className="flex-1 flex flex-col min-h-0 min-w-0">
+        <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shrink-0">
+          {/* Hamburger — mobile only */}
+          <button
+            className="md:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors shrink-0"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          {/* Search — hidden on small mobile */}
+          <div className="hidden sm:block flex-1 relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -214,7 +244,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 ml-auto">
             <button className="relative p-2 text-gray-500 hover:bg-gray-50 rounded-lg transition-colors">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -222,18 +252,18 @@ function AdminShell({ children }: { children: React.ReactNode }) {
               </svg>
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
             </button>
-            <div className="w-px h-6 bg-gray-200" />
-            <div className="text-right">
+            <div className="hidden sm:block w-px h-6 bg-gray-200" />
+            <div className="hidden sm:block text-right">
               <div className="text-xs font-semibold text-gray-800 leading-tight">{adminUser.name}</div>
               <div className="text-[10px] text-gray-400 truncate max-w-30">{user.email}</div>
             </div>
-            <div className="w-8 h-8 rounded-full bg-emerald-primary flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-emerald-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
               {adminUser.name.charAt(0).toUpperCase()}
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
     </div>
   );
