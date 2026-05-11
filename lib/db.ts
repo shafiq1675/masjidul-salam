@@ -38,6 +38,7 @@ export type FsMember = {
   phone: string;
   role: string;
   joinDate: string;
+  occupations: string;
   status: "Active" | "Inactive";
 };
 
