@@ -25,11 +25,13 @@ const PRAYER_ICONS: Record<string, string> = {
 
 function fmt(t: string) {
   if (!t) return "—";
-  const [hStr, mStr] = t.split(":");
-  const h = parseInt(hStr, 10);
-  const suffix = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 || 12;
-  return `${h12}:${mStr} ${suffix}`;
+  const parts = t.trim().split(":");
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1] ?? "0", 10);
+  if (isNaN(h) || isNaN(m)) return t;
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
 function getNextPrayerIdx(prayers: PrayerTimesDoc["prayers"]) {
