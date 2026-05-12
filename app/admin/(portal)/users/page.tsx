@@ -42,10 +42,6 @@ const ROLE_COLORS: Record<string, string> = {
   Viewer: "bg-gray-100 text-gray-600",
 };
 
-// function emptyPerms(): SectionPerms {
-//   return Object.fromEntries(SECTIONS.map((s) => [s.key, []])) as SectionPerms;
-// }
-
 function emptyPerms(): SectionPerms {
   return SECTIONS.reduce((acc, section) => {
     acc[section.key as keyof SectionPerms] = [];
