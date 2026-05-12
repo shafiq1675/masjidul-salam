@@ -23,6 +23,7 @@ import {
   type ConfirmationResult,
 } from "firebase/auth";
 import { publicAuth } from "@/lib/firebase";
+import { contactInfo } from "../context/contactInfo";
 
 // ── animation variants ──────────────────────────────────────────────────────
 const fadeUp: Variants = {
