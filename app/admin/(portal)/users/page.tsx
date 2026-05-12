@@ -257,7 +257,7 @@ export default function UsersAdmin() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">User Management</h1>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -266,7 +266,7 @@ export default function UsersAdmin() {
         </div>
         <button
           onClick={openNew}
-          className="bg-emerald-primary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#154d30] transition-colors flex items-center gap-2"
+          className="bg-emerald-primary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#154d30] transition-colors flex items-center gap-2 self-start sm:self-auto"
         >
           <svg
             className="w-4 h-4"
@@ -286,7 +286,7 @@ export default function UsersAdmin() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Total Users", value: users.length },
           {

@@ -130,13 +130,13 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Two-column layout ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-[1fr_290px] gap-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_290px] gap-5 items-start">
 
         {/* Left column */}
         <div className="space-y-5">
 
           {/* Stat cards */}
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
             {/* Total Members */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6 relative overflow-hidden">

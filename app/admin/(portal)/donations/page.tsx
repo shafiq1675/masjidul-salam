@@ -194,16 +194,16 @@ export default function DonationsAdmin() {
   return (
     <div className="space-y-5" onClick={() => setMenuOpen(null)}>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Donation Management
           </h1>
           <p className="text-sm text-gray-400 mt-1">
             Track and manage financial contributions from the community.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
             <svg
               className="w-4 h-4"
@@ -243,7 +243,7 @@ export default function DonationsAdmin() {
       </div>
 
       {/* ── Stats ──────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Total Collection */}
         <div className="bg-emerald-primary rounded-2xl p-6 text-white relative overflow-hidden">
           <div className="absolute right-5 top-5 w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
@@ -398,7 +398,8 @@ export default function DonationsAdmin() {
           </div>
         ) : (
           <>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-100">
                   <th className="text-left px-6 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-wide">
@@ -547,9 +548,10 @@ export default function DonationsAdmin() {
                 )}
               </tbody>
             </table>
+            </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-4 border-t border-gray-100">
               <span className="text-sm text-gray-400">
                 {filtered.length === 0
                   ? "No donations"
@@ -614,7 +616,7 @@ export default function DonationsAdmin() {
       </div>
 
       {/* ── Bottom row ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-[1fr_260px] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
         {/* Monthly Trend bar chart */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h2 className="font-semibold text-gray-900 mb-6">Monthly Trend</h2>
