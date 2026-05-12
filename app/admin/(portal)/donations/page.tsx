@@ -3,10 +3,12 @@
 import { useEffect, useState, useMemo } from "react";
 import {
   subscribeDonations,
+  subscribeMembers,
   addDonation,
   updateDonation,
   deleteDonation,
   type FsDonation,
+  type FsMember,
 } from "@/lib/db";
 
 const CATEGORIES = [
@@ -80,6 +82,7 @@ function pageButtons(current: number, total: number): number[] {
 
 export default function DonationsAdmin() {
   const [donations, setDonations] = useState<FsDonation[]>([]);
+  const [members, setMembers] = useState<FsMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [catFilter, setCatFilter] = useState("All");
   const [page, setPage] = useState(1);
@@ -88,6 +91,8 @@ export default function DonationsAdmin() {
   const [form, setForm] = useState<Omit<FsDonation, "id">>(blank);
   const [saving, setSaving] = useState(false);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [donorSearch, setDonorSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeDonations((rows) => {
@@ -97,9 +102,16 @@ export default function DonationsAdmin() {
     return unsub;
   }, []);
 
+  useEffect(() => {
+    const unsub = subscribeMembers((rows) => setMembers(rows));
+    return unsub;
+  }, []);
+
   function openNew() {
     setEditing(null);
     setForm(blank);
+    setDonorSearch("");
+    setShowSuggestions(false);
     setShowForm(true);
   }
   function openEdit(d: FsDonation) {
@@ -114,6 +126,8 @@ export default function DonationsAdmin() {
       method: d.method,
       status: d.status,
     });
+    setDonorSearch(d.donor);
+    setShowSuggestions(false);
     setShowForm(true);
     setMenuOpen(null);
   }
@@ -744,18 +758,60 @@ export default function DonationsAdmin() {
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
+                <div className="col-span-2 relative">
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">
                     Donor Name *
                   </label>
                   <input
-                    value={form.donor}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, donor: e.target.value }))
-                    }
+                    value={donorSearch}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setDonorSearch(val);
+                      setForm((f) => ({ ...f, donor: val, email: f.email, phone: f.phone }));
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-primary/20 focus:border-emerald-primary"
-                    placeholder="Full name"
+                    placeholder="Type or search member name…"
+                    autoComplete="off"
                   />
+                  {showSuggestions && donorSearch.length > 0 && (() => {
+                    const hits = members.filter((m) =>
+                      m.name.toLowerCase().includes(donorSearch.toLowerCase())
+                    ).slice(0, 6);
+                    return hits.length > 0 ? (
+                      <ul className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                        {hits.map((m) => (
+                          <li key={m.id}>
+                            <button
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                setDonorSearch(m.name);
+                                setForm((f) => ({
+                                  ...f,
+                                  donor: m.name,
+                                  email: m.email || f.email,
+                                  phone: m.phone || f.phone,
+                                }));
+                                setShowSuggestions(false);
+                              }}
+                              className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-3"
+                            >
+                              <div className="w-7 h-7 rounded-full bg-emerald-primary/10 text-emerald-primary flex items-center justify-center text-xs font-bold shrink-0">
+                                {m.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900">{m.name}</div>
+                                {m.phone && <div className="text-xs text-gray-400">{m.phone}</div>}
+                              </div>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null;
+                  })()}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1.5">
