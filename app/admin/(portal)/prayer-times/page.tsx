@@ -7,18 +7,11 @@ import {
   type PrayerTimesDoc,
   type PrayerEntry,
 } from "@/lib/db";
+import { fmt24to12 } from "@/lib/timeFormat";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmt24to12(t: string) {
-  if (!t) return "—";
-  const [hStr, mStr] = t.split(":");
-  const h = parseInt(hStr, 10);
-  const m = mStr ?? "00";
-  const ampm = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 || 12;
-  return `${h12}:${m} ${ampm}`;
-}
+
 
 const PRAYER_META: Record<string, { icon: React.ReactNode; color: string }> = {
   Fajr: {
@@ -329,7 +322,7 @@ export default function PrayerTimesAdmin() {
                         />
                       ) : (
                         <span className={`font-medium ${isNext ? "text-orange-700" : "text-gray-800"}`}>
-                          {fmt24to12(p.adhan)}
+                                                    {fmt24to12(p.adhan)}
                         </span>
                       )}
                     </td>

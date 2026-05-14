@@ -50,6 +50,7 @@ export type PrayerTimesDoc = {
   method: string;
   prayers: PrayerEntry[];
   jumuah: { firstKhutbah: string; iqama: string; khateeb: string };
+  
 };
 
 // ── Collection refs ──────────────────────────────────────────────────────────
