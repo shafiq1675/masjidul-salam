@@ -78,7 +78,7 @@ export default function CommunityAdmin() {
       joinDate: m.joinDate,
       status: m.status,
       occupations: m.occupations,
-      pinNumber: m.pinNumber?? generatePinNumber(),
+      pinNumber: m.pinNumber ?? generatePinNumber(),
     });
     setShowForm(true);
   }
@@ -236,6 +236,9 @@ export default function CommunityAdmin() {
                     Joined
                   </th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Month Due
+                  </th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Status
                   </th>
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -245,7 +248,7 @@ export default function CommunityAdmin() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {filtered.map((m, i) => (
+                {filtered.map((m:any, i) => (
                   <tr key={m.id} className="hover:bg-gray-50/50">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
@@ -293,6 +296,14 @@ export default function CommunityAdmin() {
                           })
                         : "—"}
                     </td>
+                    <td className="px-5 py-3.5">
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded-full font-medium text-center `}
+                      >
+                        {m.monthDue > 0 ? `${m.monthDue} month(s)` : "—"}
+                      </span>
+                    </td>
+
                     <td className="px-5 py-3.5">
                       <span
                         className={`text-xs px-2.5 py-1 rounded-full font-medium ${

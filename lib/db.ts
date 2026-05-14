@@ -41,6 +41,7 @@ export type FsMember = {
   occupations: string;
   status: "Active" | "Inactive";
   pinNumber: number;
+  monthDue?: number | 0;
 };
 
 export type PrayerEntry = { name: string; adhan: string; iqama: string };
@@ -49,6 +50,7 @@ export type PrayerTimesDoc = {
   method: string;
   prayers: PrayerEntry[];
   jumuah: { firstKhutbah: string; iqama: string; khateeb: string };
+  
 };
 
 // ── Collection refs ──────────────────────────────────────────────────────────

@@ -24,6 +24,7 @@ import {
 } from "firebase/auth";
 import { publicAuth } from "@/lib/firebase";
 import { contactInfo } from "../context/contactInfo";
+import { fmt24to12 } from "@/lib/timeFormat";
 
 // ── animation variants ──────────────────────────────────────────────────────
 const fadeUp: Variants = {
@@ -75,6 +76,7 @@ const PRAYER_BN: Record<string, { bn: string; sun: boolean }> = {
   Asr: { bn: "আসর", sun: false },
   Maghrib: { bn: "মাগরিব", sun: false },
   Isha: { bn: "এশা", sun: false },
+  "Jumu'ah": { bn: "জুম্মা", sun: false },
 };
 
 const BENGALI_DAYS = [
@@ -258,16 +260,28 @@ export default function Home() {
   // build display array from Firestore doc (skip Jumu'ah — weekly only)
   // Maghrib expands to two cards: adhan = iftar/Maghrib, iqama = Sunset prayer start
   const prayers = (prayerDoc?.prayers ?? [])
-    .filter((p) => p.name !== "Jumu'ah")
+    // .filter((p) => p.name !== "Jumu'ah")
     .flatMap((p) => {
       const meta = PRAYER_BN[p.name] ?? { bn: p.name, sun: false };
       const [h, m] = (p.adhan || "0:0").split(":").map(Number);
-      const entry = { name: meta.bn, time: toBN(p.adhan), h, m, sun: meta.sun };
+      const entry = {
+        name: meta.bn,
+        time: toBN(p.iqama ? fmt24to12(p.iqama) : fmt24to12(p.adhan)),
+        h,
+        m,
+        sun: meta.sun,
+      };
       if (p.name === "Maghrib" && p.iqama) {
         const [ih, im] = p.iqama.split(":").map(Number);
         return [
           entry,
-          { name: "সূর্যাস্ত", time: toBN(p.iqama), h: ih, m: im, sun: true },
+          {
+            name: "সূর্যাস্ত",
+            time: toBN(fmt24to12(p.adhan)),
+            h: ih,
+            m: im,
+            sun: true,
+          },
         ];
       }
       return [entry];
@@ -461,7 +475,7 @@ export default function Home() {
       {/* ── Prayer Times ──────────────────────────────────────────────────── */}
       <div className="px-4 md:px-8 lg:px-16 -mt-12 relative z-10">
         <motion.div
-          className="max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl p-5 md:p-6"
+          className="w-fit mx-auto bg-white rounded-2xl shadow-2xl p-5 md:p-6"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.6, ease: "easeOut" }}
@@ -471,11 +485,13 @@ export default function Home() {
               <span className="text-lg">🕌</span>
               আজকের নামাজের সময়সূচী
             </div>
-            <span className="text-xs text-gray-400">{bengaliDate(now)}</span>
+            <span className="text-sm text-gold-accent font-black">
+              {bengaliDate(now)}
+            </span>
           </div>
 
           <motion.div
-            className="grid grid-cols-4 md:grid-cols-7 gap-2"
+            className="flex flex-wrap gap-2 w-fit justify-center"
             variants={staggerContainer}
             initial="hidden"
             animate="show"
@@ -490,11 +506,12 @@ export default function Home() {
                 <motion.div
                   key={prayer.name}
                   variants={cardVariant}
-                  className={`relative flex flex-col items-center py-3 px-1 rounded-xl text-center border transition-colors ${prayer.sun ? "bg-gold-accent/10! text-gold-accent" : ""} ${
+                  className={`relative flex flex-col items-center py-3 px-8 rounded-xl text-center border transition-colors ${prayer.sun ? "bg-gold-accent/10! text-gold-accent" : ""} ${
                     isCurrent
                       ? "bg-gold-accent border-gold-accent"
                       : isNext
-                        ? "bg-white border-2 border-gold-accent"
+                        ? "bg-white border-2 border-gold-accent":
+                        prayer.name == "জুম্মা"? "bg-green-800 *:text-white "
                         : isPast
                           ? "bg-gray-50 border-gray-100 opacity-50"
                           : "bg-gray-50 border-gray-100"
@@ -503,7 +520,7 @@ export default function Home() {
                   {/* status badge */}
                   {(isCurrent || isNext) && (
                     <span
-                      className={`absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${
+                      className={`absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs px-2 py-0.5 rounded-full font-bold whitespace-nowrap ${
                         isCurrent
                           ? "bg-white text-gold-accent"
                           : "bg-gold-accent text-white"
@@ -515,7 +532,7 @@ export default function Home() {
 
                   {/* prayer name */}
                   <span
-                    className={`text-[11px] font-medium flex items-center gap-0.5 ${
+                    className={`text-sm font-medium flex items-center gap-0.5 ${
                       isCurrent ? "text-white/80" : "text-gray-500"
                     }`}
                   >
@@ -541,7 +558,14 @@ export default function Home() {
                           : "text-emerald-primary"
                     }`}
                   >
-                    {prayer.time}
+                    <span
+                      className={`text-sm mr-1  ${
+                        prayer.sun ? "text-gold-accent" : "text-slate-400"
+                      }`}
+                    >
+                      {prayer.time.split(" ")[0]}
+                    </span>
+                    {prayer.time.split(" ")[1]}
                   </span>
                 </motion.div>
               );
