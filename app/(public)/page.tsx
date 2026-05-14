@@ -256,7 +256,6 @@ export default function Home() {
     [],
   );
 
-  
   // build display array from Firestore doc (skip Jumu'ah — weekly only)
   // Maghrib expands to two cards: adhan = iftar/Maghrib, iqama = Sunset prayer start
   const prayers = (prayerDoc?.prayers ?? [])
@@ -264,12 +263,24 @@ export default function Home() {
     .flatMap((p) => {
       const meta = PRAYER_BN[p.name] ?? { bn: p.name, sun: false };
       const [h, m] = (p.adhan || "0:0").split(":").map(Number);
-      const entry = { name: meta.bn, time: toBN(p.iqama?fmt24to12(p.iqama):fmt24to12(p.adhan)), h, m, sun: meta.sun };
+      const entry = {
+        name: meta.bn,
+        time: toBN(p.iqama ? fmt24to12(p.iqama) : fmt24to12(p.adhan)),
+        h,
+        m,
+        sun: meta.sun,
+      };
       if (p.name === "Maghrib" && p.iqama) {
         const [ih, im] = p.iqama.split(":").map(Number);
         return [
           entry,
-          { name: "সূর্যাস্ত", time: toBN(fmt24to12(p.adhan)), h: ih, m: im, sun: true },
+          {
+            name: "সূর্যাস্ত",
+            time: toBN(fmt24to12(p.adhan)),
+            h: ih,
+            m: im,
+            sun: true,
+          },
         ];
       }
       return [entry];
@@ -473,8 +484,9 @@ export default function Home() {
               <span className="text-lg">🕌</span>
               আজকের নামাজের সময়সূচী
             </div>
-            <span className="text-sm text-gold-accent font-black">{bengaliDate(now)}</span>
-                     
+            <span className="text-sm text-gold-accent font-black">
+              {bengaliDate(now)}
+            </span>
           </div>
 
           <motion.div
@@ -544,7 +556,13 @@ export default function Home() {
                           : "text-emerald-primary"
                     }`}
                   >
-                    <span className="text-sm mr-1">{prayer.time.split(" ")[0]}</span>
+                    <span
+                      className={`text-sm mr-1  ${
+                        prayer.sun ? "text-gold-accent" : "text-slate-400"
+                      }`}
+                    >
+                      {prayer.time.split(" ")[0]}
+                    </span>
                     {prayer.time.split(" ")[1]}
                   </span>
                 </motion.div>
