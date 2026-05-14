@@ -37,6 +37,7 @@ const blank: Omit<FsMember, "id"> = {
   occupations: OCCUPATIONS[0],
   joinDate: new Date().toISOString().slice(0, 10),
   status: "Active",
+  pinNumber: 0,
 };
 
 export default function CommunityAdmin() {
@@ -48,6 +49,10 @@ export default function CommunityAdmin() {
   const [editing, setEditing] = useState<FsMember | null>(null);
   const [form, setForm] = useState<Omit<FsMember, "id">>(blank);
   const [saving, setSaving] = useState(false);
+
+  function generatePinNumber(): number {
+    return Math.floor(100000 + Math.random() * 900000); // Generates a random 6-digit number
+  }
 
   useEffect(() => {
     const unsub = subscribeMembers((rows) => {
@@ -61,6 +66,7 @@ export default function CommunityAdmin() {
     setEditing(null);
     setForm(blank);
     setShowForm(true);
+    setForm((f) => ({ ...f, pinNumber: generatePinNumber() }));
   }
   function openEdit(m: FsMember) {
     setEditing(m);
@@ -72,6 +78,7 @@ export default function CommunityAdmin() {
       joinDate: m.joinDate,
       status: m.status,
       occupations: m.occupations,
+      pinNumber: m.pinNumber?? generatePinNumber(),
     });
     setShowForm(true);
   }
@@ -231,6 +238,9 @@ export default function CommunityAdmin() {
                   <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     Status
                   </th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Pin
+                  </th>
                   <th className="px-5 py-3" />
                 </tr>
               </thead>
@@ -292,6 +302,13 @@ export default function CommunityAdmin() {
                         }`}
                       >
                         {m.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded-full font-medium `}
+                      >
+                        {m.pinNumber}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
@@ -424,23 +441,36 @@ export default function CommunityAdmin() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                    Status
-                  </label>
-                  <select
-                    value={form.status}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        status: e.target.value as FsMember["status"],
-                      }))
-                    }
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-primary/20 focus:border-emerald-primary"
-                  >
-                    <option>Active</option>
-                    <option>Inactive</option>
-                  </select>
+
+                <div className="flex gap-4 col-span-2">
+                  <div className="w-full flex flex-col">
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                      Status
+                    </label>
+                    <select
+                      value={form.status}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          status: e.target.value as FsMember["status"],
+                        }))
+                      }
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-primary/20 focus:border-emerald-primary"
+                    >
+                      <option>Active</option>
+                      <option>Inactive</option>
+                    </select>
+                  </div>
+                  <div className="w-full flex flex-col">
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                      Pin Number
+                    </label>
+                    <input
+                      disabled
+                      value={form.pinNumber}
+                      className="w-full border disabled border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-primary/20 focus:border-emerald-primary"
+                    />
+                  </div>
                 </div>
               </div>
               <div>

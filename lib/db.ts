@@ -40,6 +40,7 @@ export type FsMember = {
   joinDate: string;
   occupations: string;
   status: "Active" | "Inactive";
+  pinNumber: number;
 };
 
 export type PrayerEntry = { name: string; adhan: string; iqama: string };
