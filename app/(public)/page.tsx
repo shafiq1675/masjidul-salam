@@ -147,7 +147,7 @@ const leaders = [
 const developers = [
   {
     name: "মোঃ শফিকুল ইসলাম",
-    image: "/team/shafiq.jpg",
+    image: "/team/shafiq.webp",
     role: "Software Engineer",
   },
   {
